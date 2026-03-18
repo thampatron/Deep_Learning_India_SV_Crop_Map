@@ -1,11 +1,11 @@
 # India Map Pipeline
 
-A comprehensive pipeline for downloading, processing, and classifying agricultural field imagery across India using Google Street View and Vision Language Models (VLMs).
+A comprehensive pipeline for downloading, processing, and classifying agricultural field imagery using SV and Vision Language Models (VLMs).
 
 ## Overview
 
 This pipeline enables:
-- **High-resolution Street View image download** for agricultural fields across India
+- **High-resolution Street View image download** 
 - **Stratified sampling** by geographic area and crop season
 - **Ground reference preparation** with adjusted field coordinates
 - **Zero-shot and fine-tuned crop classification** using multiple VLMs (GPT-4, Claude, Gemini, LLaMA)
@@ -14,7 +14,7 @@ This pipeline enables:
 ## Project Structure
 
 ```
-India_Map_Pipeline/
+India_SV_Pipeline/
 ├── streetview_highres/
 │   ├── downloadHighResTrainSetParallel.py    # Main parallel downloader
 │   ├── stratifiedSampleMatching.py           # Creates stratified test sets
@@ -69,7 +69,7 @@ Update paths to match your local setup:
 ```json
 {
   "paths": {
-    "project_root": "/your/path/to/India_Map_Pipeline",
+    "project_root": "/your/path/to/India_SV_Pipeline",
     "output_folder": "/your/output/path",
     ...
   }
@@ -141,7 +141,7 @@ python stratifiedSampleMatching.py
 
 **What it does**:
 1. Loads inferred crop labels from previous classifications
-2. Filters by year and season (e.g., Kharif 2023)
+2. Filters by year and season
 3. Matches to random sample points using state area proportions
 4. Ensures minimum distance between points (default: 100m)
 5. Exports matched points with coordinates
@@ -315,36 +315,10 @@ python -c "import streetview_pano"  # Should work
 
 ### Input Data (not included)
 You will need:
-1. **Random sample CSV** (`IndiaRandomSample2M.csv`): 2M random points across India
+1. **Random sample CSV**: Randomly sampled points across your region
 2. **State shapefiles** (`secondLevelIndiaShp.shp`): Indian state boundaries
 3. **Inferred crop data**: Previous crop classification results
 4. **Metadata CSV**: Field coordinates with season/date information
-
-### Output Data Sizes
-- Training images: ~100GB for 100k images
-- Test images: ~30GB for 30k images
-- Metadata CSVs: ~1-5MB per 1000 images
-
----
-
-## Citation
-
-If you use this pipeline in your research, please cite:
-
-```bibtex
-@software{india_map_pipeline,
-  title = {India Map Pipeline: Agricultural Field Classification via Street View and VLMs},
-  year = {2025},
-  author = {Your Name},
-  url = {https://github.com/yourusername/India_Map_Pipeline}
-}
-```
-
----
-
-## License
-
-[Specify your license here]
 
 ---
 
@@ -357,14 +331,7 @@ Contributions are welcome! Please:
 
 ---
 
-## Contact
-
-For questions or issues, please open a GitHub issue or contact [your email].
-
----
-
 ## Acknowledgments
 
 - Google Street View Static API
 - OpenAI, Anthropic, Google DeepMind for VLM APIs
-- Indian government for shapefile data
