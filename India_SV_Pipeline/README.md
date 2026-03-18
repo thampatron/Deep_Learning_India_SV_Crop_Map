@@ -1,4 +1,4 @@
-# India Map Pipeline
+# India SV Pipeline
 
 A comprehensive pipeline for downloading, processing, and classifying agricultural field imagery using SV and Vision Language Models (VLMs).
 
@@ -50,7 +50,7 @@ India_SV_Pipeline/
 
 ```bash
 # Clone or navigate to the project directory
-cd India_Map_Pipeline
+cd India_SV_Pipeline
 
 # Install required Python packages
 pip install pandas numpy pillow opencv-python scikit-learn geopandas shapely scipy tqdm google-cloud-storage anthropic openai together google-generativeai
@@ -115,10 +115,10 @@ python downloadHighResTrainSetParallel.py
 - `max_workers`: Number of parallel workers (default: 20)
 - `max_images`: Maximum images to download (default: 100000)
 - `batch_size`: Processing batch size (default: 50)
-- `selected_states`: Filter by specific Indian states (default: all)
+- `selected_states`: Filter by specific states (default: all)
 
 **Features**:
-- Area-based state mapping with 36 Indian states/territories
+- Area-based state mapping
 - Duplicate detection and skipping
 - Black image filtering
 - SIFT-based feature matching for best panorama selection
@@ -316,7 +316,7 @@ python -c "import streetview_pano"  # Should work
 ### Input Data (not included)
 You will need:
 1. **Random sample CSV**: Randomly sampled points across your region
-2. **State shapefiles** (`secondLevelIndiaShp.shp`): Indian state boundaries
+2. **State shapefiles** (`secondLevelIndiaShp.shp`): Second level state boundaries
 3. **Inferred crop data**: Previous crop classification results
 4. **Metadata CSV**: Field coordinates with season/date information
 
@@ -335,3 +335,26 @@ Contributions are welcome! Please:
 
 - Google Street View Static API
 - OpenAI, Anthropic, Google DeepMind for VLM APIs
+
+
+## MIT License
+
+Copyright (c) 2026 Jordi Laguarta Soler
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
