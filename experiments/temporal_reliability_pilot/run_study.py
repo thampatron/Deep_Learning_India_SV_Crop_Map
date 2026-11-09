@@ -23,19 +23,22 @@ from study_utils import (load_inputs, spatial_partition, block_ids, classifier,
 
 def audit(meta, split, observed):
     """Descriptive analysis; counts reported even if no reliable VLM comparisons."""
+    train_meta = meta.iloc[split["train"]].copy()
+    train_observed = observed[split["train"]]
     out = {
-        "label_sources": {str(k):int(v) for k,v in meta.label_source.value_counts().items()},
-        "capture_months": {str(k):int(v) for k,v in meta.capture_month.value_counts().sort_index().items()},
-        "crop_counts": {str(k):int(v) for k,v in meta.crop_label.value_counts().items()},
+        "audit_scope":"training only; no held-out expert labels used for exploratory error inspection",
+        "label_sources": {str(k):int(v) for k,v in train_meta.label_source.value_counts().items()},
+        "capture_months": {str(k):int(v) for k,v in train_meta.capture_month.value_counts().sort_index().items()},
+        "crop_counts": {str(k):int(v) for k,v in train_meta.crop_label.value_counts().items()},
         "expert_test_n": len(split["test"]),
-        "satellite_observation_fraction":float(observed.mean()),
+        "satellite_observation_fraction":float(train_observed.mean()),
         "satellite_coverage_by_ground_month": {
-            str(int(m)):float(observed[meta.capture_month.to_numpy() == m].mean())
-            for m in sorted(meta.capture_month.unique())},
+            str(int(m)):float(train_observed[train_meta.capture_month.to_numpy() == m].mean())
+            for m in sorted(train_meta.capture_month.unique())},
         "vlm_vs_expert": None
     }
-    if "vlm_label" in meta:
-        gold = meta[meta.label_source == "expert"].copy()
+    if "vlm_label" in train_meta:
+        gold = train_meta[train_meta.label_source == "expert"].copy()
         gold = gold[gold.vlm_label.notna()]
         if len(gold):
             gold["wrong"] = gold.vlm_label.astype(str) != gold.crop_label.astype(str)
@@ -47,8 +50,8 @@ def audit(meta, split, observed):
                 "by_crop": {str(c): {"n":len(s), "error_rate":float(s.wrong.mean())}
                             for c,s in gold.groupby("crop_label")}
             }
-    if "image_field_match_audited" in meta:
-        audited = meta.image_field_match_audited.dropna()
+    if "image_field_match_audited" in train_meta:
+        audited = train_meta.image_field_match_audited.dropna()
         if len(audited):
             out["audited_match_rate"] = float(pd.to_numeric(audited).mean())
             out["audited_match_n"] = int(len(audited))
