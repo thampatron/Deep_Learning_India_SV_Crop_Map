@@ -52,3 +52,35 @@ Reported: accuracy, macro-F1, per-class F1, train/test counts. `concat` also und
 - Future historical district crop statistics must be **lagged and available before the target season**; compare true, stale and shuffled history with regional holdouts.
 
 No existing repository scripts are modified.
+
+---
+
+## Updated PI-facing experiments (v2, recommended)
+
+The original `pilot.py` is retained as a cheap **pooled-embedding diagnostic**. It cannot test genuine temporal interaction or reliable modality-risk estimation. The recommended first study uses real time-indexed satellite features and separates expert-verified labels from VLM pseudo-labels.
+
+Read **[PI_EXPERIMENT_DESIGN.md](PI_EXPERIMENT_DESIGN.md)** first: for each experiment it specifies the scientific motivation, contrast, expected interpretation, decision gate, and what could falsify our hypothesis.
+
+Read **[SEQUENCE_DATA_CONTRACT.md](SEQUENCE_DATA_CONTRACT.md)** to prepare paired input files. This repository does **not** yet contain aligned real S1/S2 sequences exported in this format; building that exporter is the first real-data integration step.
+
+```bash
+pip install -r requirements.txt
+python make_synthetic_sequence.py --output-dir /tmp/crop_sequence_demo
+python run_study.py \
+  --metadata /tmp/crop_sequence_demo/metadata.csv \
+  --sequences /tmp/crop_sequence_demo/sequences.npz \
+  --output /tmp/crop_sequence_demo/results.json \
+  --block-degrees 1.0 --buffer-km 5
+python -m unittest discover -s tests -v
+```
+
+`run_study.py` implements four stages:
+
+- **E0 / data audit**: VLM-vs-expert error distribution by capture month and crop, expert prevalence, audited field matching.
+- **E1 / temporally indexed satellite baselines**: satellite sequence; ground; late fusion; satellite + date alone; dated fusion; month-interval local satellite fusion; timestamp-shuffled negative controls. The interval operator uses **month/year, never an invented day**.
+- **E2 / source error predictability**: spatially cross-fitted expert errors, modality-specific error prediction from ex-ante quality and uncertainty features, equal-weight versus confidence-weight versus risk-weight fusion. The risk models are **not yet externally calibrated**.
+- **E3 / satellite-only deployment**: expert-only hard labels, hard VLM pseudo-labels, and group-out-of-fold multimodal soft-teacher targets; all students use satellite data only at test time.
+
+**Caution:** The method is deliberately small. This is a *diagnostic experiment suite*, not yet a proposed novel architecture or empirical evidence. Synthetic outputs show only that code runs. No real Indian measurements or LUCAS back-test have been made.
+
+The key choice is **not** to build a large transformer first. We first ask whether temporal correspondence and individual modality reliability provide measurable, spatially transferable information, then develop an interval-aware cross-attention / factorized uncertainty method only if justified by the data.
