@@ -21,13 +21,17 @@ from study_utils import (load_inputs, spatial_partition, block_ids, classifier,
                          confidence_features)
 
 
-def audit(meta, split):
+def audit(meta, split, observed):
     """Descriptive analysis; counts reported even if no reliable VLM comparisons."""
     out = {
         "label_sources": {str(k):int(v) for k,v in meta.label_source.value_counts().items()},
         "capture_months": {str(k):int(v) for k,v in meta.capture_month.value_counts().sort_index().items()},
         "crop_counts": {str(k):int(v) for k,v in meta.crop_label.value_counts().items()},
         "expert_test_n": len(split["test"]),
+        "satellite_observation_fraction":float(observed.mean()),
+        "satellite_coverage_by_ground_month": {
+            str(int(m)):float(observed[meta.capture_month.to_numpy() == m].mean())
+            for m in sorted(meta.capture_month.unique())},
         "vlm_vs_expert": None
     }
     if "vlm_label" in meta:
@@ -230,6 +234,46 @@ def distillation_probe(meta,ground,sat,observed,yearmonth,split,labels,seed):
     }
 
 
+
+def stress_test(meta,ground,sat,observed,yearmonth,split,fitted,labels,seed):
+    """Test-time perturbations; NO retraining or choosing worst-case parameters.
+
+    These measure robustness, not correctness of a learned risk estimate.
+    """
+    rng=np.random.default_rng(seed+999)
+    y=meta.crop_label.astype(str).to_numpy()
+    test=split["test"]
+    output={}
+    for variant in ("satellite","concat","aligned"):
+        clean_x=temporal_features(meta,ground,sat,observed,yearmonth,variant)
+        output[variant]={"clean":prediction_metrics(y[test],
+            probabilities(fitted[variant],clean_x[test],labels),labels)}
+        for rate in (.1,.3):
+            corrupt_ground=ground.copy()
+            ids=rng.choice(test,size=max(1,int(round(rate*len(test)))),replace=False)
+            # Donors selected from the test partition, never training samples.
+            donors=rng.choice(test,size=len(ids),replace=True)
+            corrupt_ground[ids]=ground[donors]
+            damaged=temporal_features(meta,corrupt_ground,sat,observed,yearmonth,variant)
+            output[variant][f"wrong_field_{rate}"]=prediction_metrics(
+                y[test],probabilities(fitted[variant],damaged[test],labels),labels)
+        for rate in (.3,.6):
+            damaged_sat=sat.copy()
+            damaged_obs=observed.copy()
+            # Mask a fraction of time bins across every test parcel.
+            keep=rng.random(damaged_obs[test].shape)>=rate
+            damaged_obs[test]=damaged_obs[test] & keep
+            damaged_sat[test]=np.where(damaged_obs[test][...,None],
+                                      damaged_sat[test],0)
+            damaged=temporal_features(meta,ground,damaged_sat,damaged_obs,yearmonth,variant)
+            output[variant][f"missing_sat_dates_{rate}"]=prediction_metrics(
+                y[test],probabilities(fitted[variant],damaged[test],labels),labels)
+    return {"models":output,
+            "interpretation":"Measure degradation against each model's clean score. "
+            "Wrong-field swaps and missing-date masking are controlled stress tests "
+            "and do not prove the model detects unreliable inputs."}
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--metadata",required=True)
@@ -252,13 +296,14 @@ def main():
                     "limitations":["This is not trainable cross-attention.",
                                    "This is not proof of geographically calibrated uncertainty.",
                                    "Any synthetic demo output is a smoke test only."]},
-        "audit":audit(meta,split), "temporal_models":models
+        "audit":audit(meta,split,obs), "temporal_models":models
     }
     try:
         results["reliability"] = reliability_probe(
             meta,ground,sat,obs,ym,split,fitted,labels,gold)
     except ValueError as e:
         results["reliability"] = {"skipped":str(e)}
+    results["robustness_stress_test"] = stress_test(meta,ground,sat,obs,ym,split,fitted,labels,args.seed)
     results["satellite_only_distillation"] = distillation_probe(
         meta,ground,sat,obs,ym,split,labels,args.seed)
     Path(args.output).parent.mkdir(parents=True,exist_ok=True)
