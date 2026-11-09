@@ -76,9 +76,10 @@ python -m unittest discover -s tests -v
 
 `run_study.py` implements four stages:
 
-- **E0 / data audit**: VLM-vs-expert error distribution by capture month and crop, expert prevalence, audited field matching.
+- **E0 / data audit**: VLM-vs-expert error distribution by capture month and crop, expert prevalence, audited field matching, satellite observation coverage by capture month.
 - **E1 / temporally indexed satellite baselines**: satellite sequence; ground; late fusion; satellite + date alone; dated fusion; month-interval local satellite fusion; timestamp-shuffled negative controls. The interval operator uses **month/year, never an invented day**.
 - **E2 / source error predictability**: spatially cross-fitted expert errors, modality-specific error prediction from ex-ante quality and uncertainty features, equal-weight versus confidence-weight versus risk-weight fusion. The risk models are **not yet externally calibrated**.
+- **Stress tests**: test-only controlled wrong-field ground-feature swaps and missing satellite dates; measure loss of robustness, not automatic detection of corruptions.
 - **E3 / satellite-only deployment**: expert-only hard labels, hard VLM pseudo-labels, and group-out-of-fold multimodal soft-teacher targets; all students use satellite data only at test time.
 
 **Caution:** The method is deliberately small. This is a *diagnostic experiment suite*, not yet a proposed novel architecture or empirical evidence. Synthetic outputs show only that code runs. No real Indian measurements or LUCAS back-test have been made.
