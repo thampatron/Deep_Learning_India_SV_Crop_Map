@@ -64,7 +64,7 @@ This is a **hypothesis**, not an established finding. Merely improving fused acc
 
 **Plan:** Several predeclared spatial block sizes and seeds; test-only geographic buffers; distance-to-training and agroclimatic-distance curves; leave-district/zone-out; held-out season when available. Report macro-F1, per-class F1, NLL/Brier and uncertainty calibration, not just average accuracy. Confidence intervals should use spatial-block bootstrap rather than treating nearby fields as IID.
 
-**Corruption experiments:** Ground blur/occlusion, label-independent wrong-field reassignment, physically plausible cloud/missing-date degradation, and temporal offsets. For each perturbation test BOTH error detection and downstream prediction, including when *both modalities* are bad. Existing pilot contains only blunt corruptions; a realistic suite awaits real imagery and S1/S2 quality flags.
+**Corruption experiments:** The current scripts now run test-only wrong-field swaps and missing satellite dates for fixed models. Next: ground blur/occlusion, realistic cloud degradation using quality flags, and temporal offsets. For each perturbation test BOTH error detection and downstream prediction, including when *both modalities* are bad. Existing pilot contains only blunt corruptions; a realistic suite awaits real imagery and S1/S2 quality flags.
 
 **Decision:** If improvements vanish with spatial buffers or under geographic shifts, do not frame the method as geographically robust.
 
