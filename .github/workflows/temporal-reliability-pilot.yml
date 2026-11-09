@@ -1,0 +1,30 @@
+name: Temporal reliability pilot smoke tests
+
+on:
+  push:
+    branches:
+      - experiments/temporal-reliability-pilot
+  pull_request:
+    paths:
+      - "experiments/temporal_reliability_pilot/**"
+      - ".github/workflows/temporal-reliability-pilot.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pilot dependencies
+        run: python -m pip install -r experiments/temporal_reliability_pilot/requirements.txt
+      - name: Unit tests
+        working-directory: experiments/temporal_reliability_pilot
+        run: python -m unittest discover -s tests -v
+      - name: Full synthetic smoke study
+        working-directory: experiments/temporal_reliability_pilot
+        run: |
+          python make_synthetic_sequence.py --output-dir /tmp/crop_sequence_demo --n 1100
+          python run_study.py --metadata /tmp/crop_sequence_demo/metadata.csv --sequences /tmp/crop_sequence_demo/sequences.npz --output /tmp/crop_sequence_demo/results.json --block-degrees 1.0 --buffer-km 5
