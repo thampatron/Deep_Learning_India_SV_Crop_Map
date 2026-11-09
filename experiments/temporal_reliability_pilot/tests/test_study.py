@@ -10,7 +10,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from make_synthetic_sequence import generate
 from study_utils import (load_inputs,spatial_partition,block_ids,month_distance,
                          temporal_features)
-from run_study import (model_probe,reliability_probe,distillation_probe)
+from run_study import (model_probe,reliability_probe,distillation_probe,stress_test)
 
 
 class StudyTests(unittest.TestCase):
@@ -76,6 +76,9 @@ class StudyTests(unittest.TestCase):
         self.assertIn("oof_risk_weight",reliability)
         student=distillation_probe(meta,self.g,sat,self.obs,self.ym,split,labels,31)
         self.assertIn("oof_teacher_soft_student",student)
+        stress=stress_test(meta,self.g,sat,self.obs,self.ym,split,fitted,labels,31)
+        self.assertIn("wrong_field_0.3",stress["models"]["aligned"])
+        self.assertIn("missing_sat_dates_0.6",stress["models"]["satellite"])
 
 
 if __name__=="__main__":
