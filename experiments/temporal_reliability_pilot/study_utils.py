@@ -153,7 +153,7 @@ def temporal_features(meta, ground, sat, observed, yearmonth, variant):
         local = (sat * weights[...,None]).sum(1) / denom
         # no observation near anchor: local=0 and coverage=0
         coverage = (weights.sum(1,keepdims=True) > 0).astype(float)
-        base = [season, ground, local, coverage, ground * ground.mean(axis=1,keepdims=True)]
+        base = [season, ground, local, coverage, ground * local.mean(axis=1,keepdims=True), local * ground.mean(axis=1,keepdims=True)]
         if variant == "aligned":
             base.append(cyc)
         return np.column_stack(base)
